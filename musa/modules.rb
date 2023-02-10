@@ -33,7 +33,7 @@ class Modules
     end
 
     def position= p
-        puts "modules: position [#{p} ms]"
+        puts "modules: position [#{p} s]"
         @osc_client.send OSC::Message.new "/position", p
     end
 

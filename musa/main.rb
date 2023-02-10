@@ -23,7 +23,7 @@ transport.before_begin do
 
 	load "./score.rb"
 
-    modules.reset
+	modules.reset
 
 	score transport.sequencer, modules
 end
@@ -33,11 +33,11 @@ transport.on_start do
 end
 
 transport.on_position_change do |sequencer|
-    modules.position = bars_to_source_ms(sequencer.position)
+	modules.position = bars_to_source_ms(sequencer.position)
 end
 
 transport.after_stop do
-    modules.stop
+  modules.stop
 end
 
 transport.sequencer.on_debug_at do
