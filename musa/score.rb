@@ -4,7 +4,7 @@ include Musa::Series
 
 puts "...Score loaded!"
 
-def score sequencer, modules
+def score sequencer, modules, speakers
   sequencer.with do
     nodes = [
 		{ level: 23, start: 250, end: 970 },     # approaching: 290 - 1
@@ -105,6 +105,16 @@ def score sequencer, modules
   			approaching_extra_after: 100,
         in_node: :end } )
 
+    modules[0].space.set_pair 5, [10, 3]
+    modules[0].space.set_pair 4, [9, 4]
+    modules[0].space.set_pair 3, [11, 2]
+    modules[0].space.set_pair 2, [8, 5]
+    modules[0].space.set_pair 1, [12, 1]
+    modules[0].space.set_pair 0, [7, 6]
+    modules[0].space.send
+
+    speaker_matrix = [[nil] * 6]*6
+
   	p = 0
 
   	nodes.each do |n|
@@ -144,6 +154,9 @@ def score sequencer, modules
         at tms(p) do
     			log "aproaching node #{n[:level]}..."
 
+          modules[m_up].space.set_pair s_up, speaker_matrix[m_up][s_up] = speakers.allocate
+          modules[m_up].space.send
+
           m = move from: -32.0, to: from_db, duration: 1 do |v|
     				modules[m_up][s_up] = v
     			end
@@ -158,9 +171,13 @@ def score sequencer, modules
 
   		if m_down
   			at tms(p) do
-  				move from: modules[m_down][s_down], to: -32.0, till: tms(n[:start]) do |v|
+  				m = move from: modules[m_down][s_down], to: -32.0, till: tms(n[:start]) do |v|
   					modules[m_down][s_down] = v
   				end
+
+          m.after do
+            speakers.free speaker_matrix[m_down][s_down] if speaker_matrix[m_down][s_down]
+          end
   			end
   		end
 
@@ -202,6 +219,9 @@ def score sequencer, modules
 
   					log "approaching extra rise #{i}"
 
+            modules[mm].space.set_pair ss, speaker_pos = speakers.allocate
+            modules[mm].space.send
+
   					m = move from: -32.0, to: -12.0, duration: 4 do |v|
   						modules[mm][ss] = v
   					end
@@ -219,9 +239,13 @@ def score sequencer, modules
   							end
 
   							m.after do
-  								move from: modules[mm][ss], to: -32.0, duration: 4 do |v|
+  								m = move from: modules[mm][ss], to: -32.0, duration: 4 do |v|
   									modules[mm][ss] = v
   								end
+
+                  m.after do
+                    speakers.free speaker_pos
+                  end
   							end
   						end
   					end
@@ -254,6 +278,9 @@ def score sequencer, modules
       		at tms(n[:start]) do
       			log "node #{n[:level]}... started"
 
+            modules[m_in_node].space.set_pair s_in_node, speaker_pos = speakers.allocate
+            modules[m_in_node].space.send
+
       			move from: -32.0, to: -12.0, duration: tms_duration(length_ab / 5.0) do |v|
       				modules[m_in_node][s_in_node] = v
       			end
@@ -266,9 +293,13 @@ def score sequencer, modules
       		end
 
           at tms(n[:start] + length_ab) do
-      			move from: modules[m_in_node][s_in_node], to: -32.0, duration: 16 do |v|
+      			m = move from: modules[m_in_node][s_in_node], to: -32.0, duration: 16 do |v|
       				modules[m_in_node][s_in_node] = v
       			end
+
+            m.after do
+              speakers.free speaker_pos
+            end
 
       			log "node #{n[:level]}... finished"
       		end
@@ -308,14 +339,21 @@ def score sequencer, modules
         		at tms(n[:start] + length_ab) do
         			log "node b #{n[:level]}... started"
 
+              modules[m_in_node].space.set_pair s_in_node, speaker_pos = speakers.allocate
+              modules[m_in_node].space.send
+
         			 move from: -32.0, to: -0.0, duration: 8 do |v|
         				modules[m_in_node][s_in_node] = v
         			end
         		end
 
             at tms(n[:start] + 2 * length_ab ) do
-              move from: modules[m_in_node][s_in_node], to: -32.0, duration: 16 do |v|
+              m = move from: modules[m_in_node][s_in_node], to: -32.0, duration: 16 do |v|
                 modules[m_in_node][s_in_node] = v
+              end
+
+              m.after do
+                speakers.free speaker_pos
               end
 
               log "node b #{n[:level]}... finished"
